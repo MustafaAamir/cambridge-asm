@@ -76,11 +76,11 @@ The following table is an example of an instruction set:
 # Current Syntax
 
 ```c
-        INST(LDM, #10);
-  L(x); INST(DECA, #0);
-	    INST(ISP, #0);
-		INST(CMPI, b1010);
-	   	INST(JPN, x);
-        INST(END, #0);
+INST(LDM, #10);
+L(x); INST(DECA, #0);
+INST(ISP, #0);
+INST(CMPI, b1010);
+INST(JPN, x);
+INST(END, #0);
 ```
 
