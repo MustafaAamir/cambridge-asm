@@ -147,11 +147,12 @@ int main() {
         INST(LDM, #10);
   L(x); INST(DECA, #0);
 	    INST(ISP, #0);
-		INST(CMPI, #0);
+		INST(CMPI, b1010);
 	   	INST(JPN, x);
         INST(END, #0);
 
 	run_vm(&state);
-
+#undef INST
+#undef L
   return 0;
 }

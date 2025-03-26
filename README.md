@@ -72,3 +72,15 @@ The following table is an example of an instruction set:
 | `<label>: <opcode> <operand>` | Labels an instruction |
 | `<label>: <data>` | Gives a symbolic address `<label>` to the memory location with contents `<data>` |
 
+
+# Current Syntax
+
+```c
+        INST(LDM, #10);
+  L(x); INST(DECA, #0);
+	    INST(ISP, #0);
+		INST(CMPI, b1010);
+	   	INST(JPN, x);
+        INST(END, #0);
+```
+
