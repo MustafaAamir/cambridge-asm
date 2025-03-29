@@ -1,6 +1,10 @@
 # UNDER DEVELOPMENT
 
-## Instruction Set
+1. not a 1-to-1 mapping of cambridge asm, i.e., registers can't be used as operands (for now)
+2. no repl and file parsing
+3. `-c` doesn't compile all opcodes
+
+## Cambridge specified instruction set
 
 The following table is an example of an instruction set:
 
