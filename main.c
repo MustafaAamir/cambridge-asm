@@ -24,7 +24,7 @@ void init_vm(VMState *state) {
   state->PC = 0;
   state->flag = 0;
   memset(state->memory, 0, sizeof(state->memory));
-  memset(state->labels, 0, sizeof(state->labels));
+  memset(state->labels, NULL, sizeof(state->labels));
 }
 
 enum Opcode {
@@ -90,18 +90,10 @@ u64 parse_operand(const char *operand, char *labels[1024]) {
   char *endptr;
   u64 value;
   switch (*operand) {
-  case '#':
-    value = strtoull(operand + 1, &endptr, 10);
-    break;
-  case 'B':
-    value = strtoull(operand + 1, &endptr, 2);
-    break;
-  case '&':
-    value = strtoull(operand + 1, &endptr, 16);
-    break;
-  case 'o':
-    value = strtoull(operand + 1, &endptr, 8);
-    break;
+	  case '#': value = strtoull(operand + 1, &endptr, 10); break;
+	  case 'B': value = strtoull(operand + 1, &endptr, 2); break;
+	  case '&': value = strtoull(operand + 1, &endptr, 16); break;
+	  case 'o': value = strtoull(operand + 1, &endptr, 8); break;
   }
   for (u64 i = 0; i < MAX_LABELS; i++)
     if (labels[i] != NULL && strcmp(labels[i], operand) == 0)
@@ -196,7 +188,7 @@ void run_vm(VMState *state) {
       break; // AND addr
     case XORI:
       state->ACC ^= operand;
-      break; // XOR immediate
+      break; // XOR imm
     case XORA:
       state->ACC ^= state->memory[operand];
       break; // XOR addr
@@ -276,8 +268,6 @@ void compile_to_x86_64(const char *filename, u64 *memory, char **labels) {
   fprintf(out, "main:\n");
 
   for (int pc = 0; pc < MEM_SIZE; pc += 2) {
-    if (memory[pc] == END)
-      break;
     if (labels[pc] != NULL)
       fprintf(out, "%s:\n", labels[pc]);
     u64 opcode = memory[pc];
@@ -386,18 +376,17 @@ int main(int argc, char **argv) {
   state.memory[pos++] = parse_operand(#operand, state.labels)
 #define L(label_name) state.labels[pos] = #label_name;
 
-  INST(LDM, B1010);
-  INST(STO, &FF);
-  INST(LDM, &FF);
-  INST(STO, &AF);
-  INST(LDI, &AF);
-  L(x);
-  INST(DECA, #0);
-  INST(OUT, #0);
-  INST(ISP, #0);
-  INST(CMPI, b0);
-  INST(JPN, x);
-  INST(END, #0);
+	  INST(LDM, B1010);
+	  INST(STO, &FF);
+	  INST(LDM, &FF);
+	  INST(STO, &AF);
+	  INST(LDI, &AF);
+L(x); INST(DECA, #0);
+	  INST(OUT, #0);
+	  INST(ISP, #0);
+	  INST(CMPI, b0);
+	  INST(JPN, x);
+	  INST(END, #0);
 
   if (argc != 2) {
     fprintf(stderr,
