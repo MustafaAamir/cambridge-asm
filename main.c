@@ -5,9 +5,9 @@
 #include <string.h>
 
 // --- Virtual machine component ---  //
-
-#define MEM_SIZE 1024 // Memory size (arbitrary, can be adjusted)
 typedef uint64_t u64;
+#define MEM_SIZE 1024 // Mem
+#define MAX_LABELS MEM_SIZE
 
 typedef struct {
   u64 ACC;              // Accumulator
@@ -15,7 +15,7 @@ typedef struct {
   u64 PC;               // Program Counter
   u64 flag;             // Comparison Flag
   u64 memory[MEM_SIZE]; // Full memory snapshot
-  char *labels[MEM_SIZE];
+  char *labels[MAX_LABELS];
 } VMState;
 
 void init_vm(VMState *state) {
@@ -28,11 +28,39 @@ void init_vm(VMState *state) {
 }
 
 enum Opcode {
-  LDM, LDD, LDI, LDX, LDR, MOV_IX,
-  STO, ADDI, ADDA, SUBI, SUBA, INCA,
-  INCX, DECA, DECX, JMP, CMPA, CMPI,
-  CMII, JPE, JPN, ANDI, ANDA, XOR_I,
-  XOR_A, ORI, ORA, LSL, LSR, IN, OUT, END, ISP
+  LDM,
+  LDD,
+  LDI,
+  LDX,
+  LDR,
+  MOVIX,
+  STO,
+  ADDI,
+  ADDA,
+  SUBI,
+  SUBA,
+  INCA,
+  INCX,
+  DECA,
+  DECX,
+  JMP,
+  CMPA,
+  CMPI,
+  CMII,
+  JPE,
+  JPN,
+  ANDI,
+  ANDA,
+  XORI,
+  XORA,
+  ORI,
+  ORA,
+  LSL,
+  LSR,
+  IN,
+  OUT,
+  END,
+  ISP
 };
 
 void inspect_state(const VMState *state) {
@@ -58,15 +86,22 @@ void inspect_state(const VMState *state) {
   }
   printf("\t+--------------------------------------------------------+\n");
 }
-#define MAX_LABELS 1024
 u64 parse_operand(const char *operand, char *labels[1024]) {
   char *endptr;
   u64 value;
   switch (*operand) {
-  case '#': value = strtoull(operand + 1, &endptr, 10); break;
-  case 'B': value = strtoull(operand + 1, &endptr, 2); break;
-  case '&': value = strtoull(operand + 1, &endptr, 16); break;
-  case 'o': value = strtoull(operand + 1, &endptr, 8); break;
+  case '#':
+    value = strtoull(operand + 1, &endptr, 10);
+    break;
+  case 'B':
+    value = strtoull(operand + 1, &endptr, 2);
+    break;
+  case '&':
+    value = strtoull(operand + 1, &endptr, 16);
+    break;
+  case 'o':
+    value = strtoull(operand + 1, &endptr, 8);
+    break;
   }
   for (u64 i = 0; i < MAX_LABELS; i++)
     if (labels[i] != NULL && strcmp(labels[i], operand) == 0)
@@ -87,46 +122,120 @@ void run_vm(VMState *state) {
     u64 opcode = state->memory[state->PC++];
     u64 operand = state->memory[state->PC++];
     switch (opcode) {
-		case LDM: state->ACC = operand; break;
-		case LDD: state->ACC = state->memory[operand]; break;
-		case LDI: state->ACC = state->memory[state->memory[operand]]; break;
-		case LDX: state->ACC = state->memory[operand + state->IX]; break;
-		case LDR: state->IX = operand; break;
-		case MOV_IX: state->IX = state->ACC; break;
-		case STO: state->memory[operand] = state->ACC; break;
-		case ADDI: state->ACC += operand; break; // Add imm
-		case ADDA: state->ACC += state->memory[operand]; break;
-		case SUBI: state->ACC -= operand; break;
-		case SUBA: state->ACC -= state->memory[operand]; break;
-		case INCA: state->ACC++; break;
-		case INCX: state->IX++; break;
-		case DECA: --(state->ACC); break;
-		case DECX: state->IX--; break;
-		case JMP: state->PC = operand; break;
-		case CMPA: state->flag = (state->ACC == state->memory[operand]) ? 1 : 0; break; // Compare direct
-		case CMPI: state->flag = (state->ACC == operand) ? 1 : 0; break; // Compare imm
-		case CMII: state->flag = (state->ACC == state->memory[state->memory[operand]]) ? 1 : 0; break; // Compare indirect
-		case JPE: if (state->flag == 1) state->PC = operand; break;
-		case JPN: if (state->flag == 0) state->PC = operand; break;
-		case ANDI: state->ACC &= operand; break; // AND imm
-		case ANDA: state->ACC &= state->memory[operand]; break; // AND addr
-		case XOR_I: state->ACC ^= operand; break; // XOR immediate
-		case XOR_A: state->ACC ^= state->memory[operand]; break; // XOR addr
-		case ORI: state->ACC |= operand; break; // OR imm
-		case ORA: state->ACC |= state->memory[operand]; break; // OR addr
-		case LSL: state->ACC = (u64)((u64)state->ACC << operand); break;
-		case LSR: state->ACC = (u64)((u64)state->ACC >> operand); break;
-		case IN: { char c; scanf(" %c", &c); state->ACC = (u64)c; break; }
-		case OUT: { char c = (char)state->ACC; printf("%c", c); break; }
-		case END: return; 
-		case ISP: inspect_state(state); break;
-		default: printf("Unknown opcode %ld\n", opcode); break;
+    case LDM:
+      state->ACC = operand;
+      break;
+    case LDD:
+      state->ACC = state->memory[operand];
+      break;
+    case LDI:
+      state->ACC = state->memory[state->memory[operand]];
+      break;
+    case LDX:
+      state->ACC = state->memory[operand + state->IX];
+      break;
+    case LDR:
+      state->IX = operand;
+      break;
+    case MOVIX:
+      state->IX = state->ACC;
+      break;
+    case STO:
+      state->memory[operand] = state->ACC;
+      break;
+    case ADDI:
+      state->ACC += operand;
+      break; // Add imm
+    case ADDA:
+      state->ACC += state->memory[operand];
+      break;
+    case SUBI:
+      state->ACC -= operand;
+      break;
+    case SUBA:
+      state->ACC -= state->memory[operand];
+      break;
+    case INCA:
+      state->ACC++;
+      break;
+    case INCX:
+      state->IX++;
+      break;
+    case DECA:
+      --(state->ACC);
+      break;
+    case DECX:
+      state->IX--;
+      break;
+    case JMP:
+      state->PC = operand;
+      break;
+    case CMPA:
+      state->flag = (state->ACC == state->memory[operand]) ? 1 : 0;
+      break; // Compare direct
+    case CMPI:
+      state->flag = (state->ACC == operand) ? 1 : 0;
+      break; // Compare imm
+    case CMII:
+      state->flag =
+          (state->ACC == state->memory[state->memory[operand]]) ? 1 : 0;
+      break; // Compare indirect
+    case JPE:
+      if (state->flag == 1)
+        state->PC = operand;
+      break;
+    case JPN:
+      if (state->flag == 0)
+        state->PC = operand;
+      break;
+    case ANDI:
+      state->ACC &= operand;
+      break; // AND imm
+    case ANDA:
+      state->ACC &= state->memory[operand];
+      break; // AND addr
+    case XORI:
+      state->ACC ^= operand;
+      break; // XOR immediate
+    case XORA:
+      state->ACC ^= state->memory[operand];
+      break; // XOR addr
+    case ORI:
+      state->ACC |= operand;
+      break; // OR imm
+    case ORA:
+      state->ACC |= state->memory[operand];
+      break; // OR addr
+    case LSL:
+      state->ACC = (u64)((u64)state->ACC << operand);
+      break;
+    case LSR:
+      state->ACC = (u64)((u64)state->ACC >> operand);
+      break;
+    case IN: {
+      char c;
+      scanf(" %c", &c);
+      state->ACC = (u64)c;
+      break;
+    }
+    case OUT: {
+      char c = (char)state->ACC;
+      printf("%c", c);
+      break;
+    }
+    case END:
+      return;
+    case ISP:
+      inspect_state(state);
+      break;
+    default:
+      printf("Unknown opcode %ld\n", opcode);
+      break;
     }
   }
 }
 
 // --- Compilation unit ---- //
-//
 void compile_to_x86_64(const char *filename, u64 *memory, char **labels) {
   FILE *out = fopen(filename, "w");
   if (!out) {
@@ -167,60 +276,96 @@ void compile_to_x86_64(const char *filename, u64 *memory, char **labels) {
   fprintf(out, "main:\n");
 
   for (int pc = 0; pc < MEM_SIZE; pc += 2) {
-    if (memory[pc] == END) break;
-    if (labels[pc] != NULL) fprintf(out, "%s:\n", labels[pc]);
+    if (memory[pc] == END)
+      break;
+    if (labels[pc] != NULL)
+      fprintf(out, "%s:\n", labels[pc]);
     u64 opcode = memory[pc];
     u64 operand = memory[pc + 1];
+    // rbx is acc
     switch (opcode) {
-		case LDM: fprintf(out, "    mov qword [acc], %lu\n", operand); break;
-		case DECA: fprintf(out, "    dec qword [acc]\n"); break;
-		case JMP: fprintf(out, "    jmp label_%lu\n", operand); break;
-		case CMPI: fprintf(out, "    cmp qword [acc], %lu\n", operand); break;
-		case JPE: fprintf(out, "    je %s\n", labels[operand]); break;
-		case JPN: fprintf(out, "    jne %s\n", labels[operand]); break;
-		case ISP: fprintf(out, "    ; State inspection placeholder\n"); break;
-		case OUT: fprintf(out, "    print_int [acc]\n"); break;
-		// need to implement other opcodes. 
-		case LDD:
-		  fprintf(out, "    mov rax, [memory + %lu*8]\n", operand);
-		  fprintf(out, "    mov [acc], rax\n");
-		  break;
-		case LDI: // Indirect load to ACC
-		  fprintf(out, "    mov rbx, [memory + %lu*8]\n", operand);
-		  fprintf(out, "    mov rax, [memory + rbx*8]\n");
-		  fprintf(out, "    mov [acc], rax\n");
-		  break;
-		case LDX: // Indexed load to ACC
-		  fprintf(out, "    mov rax, [ix]\n");
-		  fprintf(out, "    mov rbx, [memory + (%lu + rax)*8]\n", operand);
-		  fprintf(out, "    mov [acc], rbx\n");
-		  break;
-		case LDR: // Load immediate to IX
-		  fprintf(out, "    mov qword [ix], %lu\n", operand);
-		  break;
-		case MOV_IX:
-		  fprintf(out, "    mov rax, [acc]\n");
-		  fprintf(out, "    mov [ix], rax\n");
-		  break;
-		case STO:
-		  fprintf(out, "    mov rax, [acc]\n");
-		  fprintf(out, "    mov [memory + %lu*8], rax\n", operand);
-		  break;
-		case ADDI: // Add immeto ACC
-		  fprintf(out, "    add qword [acc], %lu\n", operand);
-		  break;
-		case ADDA: // Add from memory to ACC
-		  fprintf(out, "    mov rax, [memory + %lu*8]\n", operand);
-		  fprintf(out, "    add [acc], rax\n");
-		  break;
-		default: fprintf(out, "    ; Unsupported opcode %lu\n", opcode); break;
+      /*
+	   left to implement
+      enum Opcode {
+        INCX, DECX, CMPA
+        CMII, ANDI, ANDA, XORI,
+        XORA, ORI, ORA, LSL, LSR, IN, ISP
+      };
+                                      */
+    case LDM:
+      fprintf(out, "    mov rbx, %lu\n", operand);
+      break;
+    case DECA:
+      fprintf(out, "    dec rbx\n");
+      break;
+    case INCA:
+      fprintf(out, "    inc rbx\n");
+      break;
+    case JMP:
+      fprintf(out, "    jmp %s\n", labels[operand]);
+      break;
+    case CMPI:
+      fprintf(out, "    cmp rbx, %lu\n", operand);
+      break;
+    case JPE:
+      fprintf(out, "    je %s\n", labels[operand]);
+      break;
+    case JPN:
+      fprintf(out, "    jne %s\n", labels[operand]);
+      break;
+    case ISP:
+      fprintf(out, "    ; State inspection placeholder\n");
+      break;
+    case OUT:
+      fprintf(out, "    print_int rbx\n");
+      break;
+    // need to implement other opcodes.
+    case LDD:
+      fprintf(out, "    mov rbx, [memory + %lu*8]\n", operand);
+      break;
+    case LDI: // Indirect load to ACC
+      fprintf(out, "    mov rcx, [memory + %lu*8]\n", operand);
+      fprintf(out, "    mov rbx, [memory + rcx*8]\n");
+      break;
+    case LDX: // Indexed load to ACC
+      fprintf(out, "    mov rax, [ix]\n");
+      fprintf(out, "    mov rbx, [memory + (%lu + rax)*8]\n", operand);
+      break;
+    case LDR: // Load immediate to IX
+      fprintf(out, "    mov qword [ix], %lu\n", operand);
+      break;
+    case MOVIX:
+      fprintf(out, "    mov [ix], rbx\n");
+      break;
+    case STO:
+      fprintf(out, "    mov [memory + %lu*8], rbx\n", operand);
+      break;
+    case ADDI: // Add immeto ACC
+      fprintf(out, "    add rbx, %lu\n", operand);
+      break;
+    case SUBI:
+      fprintf(out, "    sub rbx, %lu\n", operand);
+      break;
+    case ADDA: // Add from memory to ACC
+      fprintf(out, "    mov rax, [memory + %lu*8]\n", operand);
+      fprintf(out, "    add rbx, rax\n");
+      break;
+    case SUBA: // Add from memory to ACC
+      fprintf(out, "    mov rax, [memory + %lu*8]\n", operand);
+      fprintf(out, "    sub rbx, rax\n");
+      break;
+    case END:
+      fprintf(out, "\n    ; Exit program\n");
+      fprintf(out, "    mov rax, 60\n");
+      fprintf(out, "    xor rdi, rdi\n");
+      fprintf(out, "    syscall\n");
+      break;
+
+    default:
+      fprintf(out, "    ; Unsupported opcode %lu\n", opcode);
+      break;
     }
   }
-  fprintf(out, "\n    ; Exit program\n");
-  fprintf(out, "    mov rax, 60\n");
-  fprintf(out, "    xor rdi, rdi\n");
-  fprintf(out, "    syscall\n");
-
   fclose(out);
 }
 void generate_build_script(const char *file_name) {
@@ -241,21 +386,23 @@ int main(int argc, char **argv) {
   state.memory[pos++] = parse_operand(#operand, state.labels)
 #define L(label_name) state.labels[pos] = #label_name;
 
-	  INST(LDM, B1010);
-	  INST(STO, &FF);
-	  INST(LDM, &FF);
-	  INST(STO, &AF);
-	  INST(LDI, &AF);
-L(x); INST(DECA, #0);
-	  INST(OUT, #0);
-	  INST(ISP, #0);
-	  INST(CMPI, b0);
-	  INST(JPN, x);
-	  INST(END, #0);
+  INST(LDM, B1010);
+  INST(STO, &FF);
+  INST(LDM, &FF);
+  INST(STO, &AF);
+  INST(LDI, &AF);
+  L(x);
+  INST(DECA, #0);
+  INST(OUT, #0);
+  INST(ISP, #0);
+  INST(CMPI, b0);
+  INST(JPN, x);
+  INST(END, #0);
 
-  if (argc != 2){
-    fprintf(stderr, "usage:\n\t-v for virtual machine\n\t-c for compilation\n\n");
-	exit(0);
+  if (argc != 2) {
+    fprintf(stderr,
+            "usage:\n\t-v for virtual machine\n\t-c for compilation\n\n");
+    exit(0);
   }
   if (strcmp(argv[1], "-v") == 0)
     run_vm(&state);
